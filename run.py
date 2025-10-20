@@ -11,7 +11,6 @@ except ImportError:
     TOKEN = os.getenv('BOT_TOKEN')
     ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID', '5719962912')
     AI_TOKEN = os.getenv('AI_TOKEN')
-    DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///app/database/bot.db')
 
 from app.handlers import router
 from app.victorinhandlers import routertest
