@@ -1,9 +1,18 @@
 import asyncio
-
 import logging as log
+import os
 from aiogram import Bot, Dispatcher
 
-from config import TOKEN
+# Безопасный импорт config
+try:
+    from config import TOKEN, ADMIN_CHAT_ID, AI_TOKEN, DATABASE_URL
+except ImportError:
+    # Если config.py не доступен, берем из переменных окружения
+    TOKEN = os.getenv('BOT_TOKEN')
+    ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID', '5719962912')
+    AI_TOKEN = os.getenv('AI_TOKEN')
+    DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///app/database/bot.db')
+
 from app.handlers import router
 from app.victorinhandlers import routertest
 from app.gameshandlers import games_router
@@ -17,7 +26,6 @@ from app.ai_handlers import ai_router
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
-
 
 async def main():
     await async_main()
@@ -38,5 +46,3 @@ if __name__ == '__main__':
         asyncio.run(main())
     except KeyboardInterrupt:
         print('Exit')
-
-
