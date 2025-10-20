@@ -27,7 +27,12 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 async def main():
-    await async_main()
+    try:
+        await async_main()
+        print("✅ Таблицы созданы успешно")
+    except Exception as e:
+        print(f"❌ Ошибка создания таблиц: {e}")
+        return
     dp.include_router(router)
     dp.include_router(routertest)
     dp.include_router(games_router)
