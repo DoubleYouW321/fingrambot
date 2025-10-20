@@ -69,7 +69,7 @@ async def infl_start(callback: CallbackQuery, state: FSMContext):
     await state.update_data(user_id=callback.from_user.id)
     
     await callback.message.edit_text(
-        "💵 Введите сумму ипотеки:\n\n"
+        "💵 Введите сумму:\n\n"
         "Например: 1000000"
     )
 
