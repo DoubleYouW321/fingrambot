@@ -9,13 +9,17 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await rq.set_user(message.from_user.id, message.from_user.username)  
+    try:
+        await rq.set_user(message.from_user.id, message.from_user.username)
+        print(f"✅ Пользователь {message.from_user.id} сохранен в БД")
+    except Exception as e:
+        print(f"❌ Ошибка сохранения пользователя: {e}")
+    
     await message.answer('Приветствуем вас в чат боте по фин грамотности')
 
 @router.message(Command('learnmaterials'))
 async def learning(message: Message):
     await message.answer('В этом разделе вы можете найти важные обучающме статьи по фин-гармотности', reply_markup=kb.learning_materials)
-
 
 @router.callback_query(F.data == 'credits')
 async def credits(callback: CallbackQuery):

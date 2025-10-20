@@ -3,13 +3,10 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-
 from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton)
 
 import app.database.requests as rq
-
 from config import ADMIN_CHAT_ID
-
 
 feedback_router = Router()
 
@@ -21,7 +18,6 @@ feedback_markups = InlineKeyboardMarkup(inline_keyboard=[
 
 class FeedbackStates(StatesGroup):
     waiting_for_feedback = State()
-
 
 @feedback_router.message(Command("feedback"))
 async def cmd_feedback_start(message: Message, state: FSMContext):
@@ -43,20 +39,20 @@ async def process_feedback(message: Message, state: FSMContext, bot: Bot):
     )
 
     try:
-        await bot.send_message(ADMIN, admin_message)
+        await rq.set_comment(user_id, user_feedback)
+        print(f"✅ Комментарий от {user_id} сохранен в БД")
         
+        # Затем отправляем админу
+        await bot.send_message(ADMIN, admin_message)
         await message.answer("✅ Спасибо! Ваш отзыв отправлен администратору.")
         
     except Exception as e:
+        print(f"❌ Ошибка при сохранении отзыва: {e}")
         await message.answer("❌ Произошла ошибка при отправке отзыва.")
     
-    await rq.set_comment(message.from_user.id, message.text)
     await state.clear()
 
 @feedback_router.callback_query(F.data == 'stop')
 async def process_feedback(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.delete()
-
-
- 
