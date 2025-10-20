@@ -20,3 +20,8 @@ async def fight(callback: CallbackQuery):
 async def haos(callback: CallbackQuery):
     await callback.answer('')
     await callback.message.edit_text('Выберите', reply_markup=await gamekb.create_games(callback.data))
+
+@games_router.callback_query(F.data == 'comeback_to_games')
+async def haos(callback: CallbackQuery):
+    await callback.answer('')
+    await callback.message.edit_text('Выберите игру', reply_markup=gamekb.games)
