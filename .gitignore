@@ -1,0 +1,7 @@
+venv/
+
+database/
+
+db.sqlite
+
+config.py
