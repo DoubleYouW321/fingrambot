@@ -1,6 +1,8 @@
 from aiogram import F, Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
+from sqlalchemy import select
+from app.database.models import User, async_session
 
 import app.keyboards as kb
 import app.database.requests as rq
@@ -16,6 +18,32 @@ async def cmd_start(message: Message):
         print(f"❌ Ошибка сохранения пользователя: {e}")
     
     await message.answer('Приветствуем вас в чат боте по фин грамотности')
+
+@router.message(Command("users"))
+async def cmd_users(message: Message):
+    try:
+        async with async_session() as session:
+            # Получаем всех пользователей
+            result = await session.execute(select(User))
+            users = result.scalars().all()
+            
+            if not users:
+                await message.answer("📭 В базе нет пользователей")
+                return
+            
+            # Формируем сообщение со всеми пользователями
+            users_list = "📊 Список пользователей:\n\n"
+            for user in users:
+                users_list += f"🆔 ID: {user.tg_id}\n"
+                users_list += f"👤 Имя: {user.user_name}\n"
+                users_list += f"#️⃣ ID в БД: {user.id}\n"
+                users_list += "─" * 20 + "\n"
+            
+            await message.answer(users_list)
+            
+    except Exception as e:
+        print(f"❌ Ошибка при получении пользователей: {e}")
+        await message.answer("❌ Ошибка при получении списка пользователей")
 
 @router.message(Command('learnmaterials'))
 async def learning(message: Message):
