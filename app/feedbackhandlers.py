@@ -39,6 +39,7 @@ async def process_feedback(message: Message, state: FSMContext, bot: Bot):
     )
 
     try:
+        # СОХРАНЯЕМ В БД ПЕРВЫМ ДЕЛОМ
         await rq.set_comment(user_id, user_feedback)
         print(f"✅ Комментарий от {user_id} сохранен в БД")
         
