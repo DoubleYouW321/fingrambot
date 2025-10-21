@@ -8,7 +8,7 @@ games_router = Router()
 
 @games_router.message(Command('games'))
 async def games(message: Message):
-    photo_url = 'blob:https://web.telegram.org/eede7508-f185-4c1a-be00-087bc5558c05'
+    photo_url = 'https://web.telegram.org/eede7508-f185-4c1a-be00-087bc5558c05'
     await message.answer_photo(photo=photo_url)
     await message.answer('Выберите игру', reply_markup=gamekb.games)
 
