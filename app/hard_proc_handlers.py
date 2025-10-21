@@ -39,12 +39,11 @@ async def calculator(message: Message):
         photo = FSInputFile("app/images/start_calculator.jpg")
         await message.answer_photo(
             photo=photo,
-            caption='Выбирите калькулятор', 
-            reply_markup=calc_kb.calculators_keyboard
         )
+        await message.answer('Выберите калькулятор', reply_markup=calc_kb.calculators_keyboard)
     except Exception as e:
         print(f"❌ Ошибка отправки фото: {e}")
-        await message.answer('Выбирите калькулятор', 
+        await message.answer('Выберите калькулятор', 
             reply_markup=calc_kb.calculators_keyboard)
 
 
