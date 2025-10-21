@@ -7,6 +7,7 @@ from app.generate import ai_generate
 import asyncio
 import html
 import app.ai_keyboard as ai_kb
+from aiogram.types import FSInputFile
 
 ai_router = Router()
 
@@ -34,25 +35,24 @@ async def cmd_start_consultation(message: Message):
 @ai_router.callback_query(F.data == 'start_consult')
 async def cmd_start_consult(callback: CallbackQuery):
     await callback.answer('')
+    text = '''Задавайте вопросы по темам:\n
+        • Инвестиции и сбережения\n
+        • Кредиты и ипотека\n
+        • Бюджет и учет финансов\n
+        • Налоги и отчетность\n
+        • Страхование\n
+        • Криптовалюты и акции\n\n
+    Отвечаю только на финансовые вопросы'''
+
     try:
-        with open(r'app/images/start_ai.jpg', 'rb') as photo:
-            await callback.message.answer_photo(photo, caption='Задавайте вопросы по темам:\n'
-        '• Инвестиции и сбережения\n'
-        '• Кредиты и ипотека\n' 
-        '• Бюджет и учет финансов\n'
-        '• Налоги и отчетность\n'
-        '• Страхование\n'
-        '• Криптовалюты и акции\n\n'
-        'Отвечаю только на финансовые вопросы')
-    except FileNotFoundError:
-        await callback.message.answer('Задавайте вопросы по темам:\n'
-        '• Инвестиции и сбережения\n'
-        '• Кредиты и ипотека\n' 
-        '• Бюджет и учет финансов\n'
-        '• Налоги и отчетность\n'
-        '• Страхование\n'
-        '• Криптовалюты и акции\n\n'
-        'Отвечаю только на финансовые вопросы')
+        photo = FSInputFile("app/images/start_ai.jpg")
+        await callback.message.answer_photo(
+            photo=photo,
+            caption=text
+        )
+    except Exception as e:
+        print(f"❌ Ошибка отправки фото: {e}")
+        await callback.message.answer(text)
 
 @ai_router.message(Gen.wait)
 async def stop_flood(message: Message):

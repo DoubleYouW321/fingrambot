@@ -3,6 +3,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove)
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram.types import FSInputFile
 
 routertest = Router()
 
@@ -67,12 +68,16 @@ async def start_test(message: Message):
     chat_id = message.from_user.id
     user_scores[chat_id] = 0
     user_questions_index[chat_id] = 0
+
     try:
-        with open(r'app/images/start_quiz.jpg', 'rb') as photo:
-            await message.answer_photo(photo, caption='Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
-    except FileNotFoundError:
+        photo = FSInputFile("app/images/start_quiz.jpg")
+        await message.answer_photo(
+            photo=photo,
+            caption='Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.'
+        )
+    except Exception as e:
+        print(f"❌ Ошибка отправки фото: {e}")
         await message.answer('Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
-    await send_question(message, chat_id)
     
 
 async def send_question(message: Message, chat_id):

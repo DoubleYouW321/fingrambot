@@ -4,6 +4,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import FSInputFile
 
 import app.finans_calculator_keyboard as calc_kb
 
@@ -35,10 +36,15 @@ class SimpleCompoundCalculator:
 @calculator_router.message(Command('calculator'))
 async def calculator(message: Message):
     try:
-        with open(r'app/images/start_calculator.jpg', 'rb') as photo:
-            await message.answer_photo(photo, caption='Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню', reply_markup=calc_kb.calculators_keyboard)
-    except FileNotFoundError:
-        await message.answer('Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню', reply_markup=calc_kb.calculators_keyboard)
+        photo = FSInputFile("app/images/start_calculator.jpg")
+        await message.answer_photo(
+            photo=photo,
+            caption='Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.'
+        )
+    except Exception as e:
+        print(f"❌ Ошибка отправки фото: {e}")
+        await message.answer('Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
+
 
 @calculator_router.callback_query(F.data == 'hard_procents_calc')
 async def hard_proc(callback: CallbackQuery):

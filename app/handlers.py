@@ -3,6 +3,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from sqlalchemy import select
 from app.database.models import User, async_session
+from aiogram.types import FSInputFile
 
 import app.keyboards as kb
 import app.database.requests as rq
@@ -18,9 +19,13 @@ async def cmd_start(message: Message):
         print(f"❌ Ошибка сохранения пользователя: {e}")
     
     try:
-        with open(r'app/images/start_bot_picture.jpg', 'rb') as photo:
-            await message.answer_photo(photo, caption='Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню')
-    except FileNotFoundError:
+        photo = FSInputFile("app/images/start_bot_picture.jpg")
+        await message.answer_photo(
+            photo=photo,
+            caption='Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню'
+        )
+    except Exception as e:
+        print(f"❌ Ошибка отправки фото: {e}")
         await message.answer('Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню')
 
 @router.message(Command("users"))
