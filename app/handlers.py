@@ -55,10 +55,17 @@ async def cmd_users(message: Message):
 
 @router.message(Command('learnmaterials'))
 async def learning(message: Message):
-    photo_url = 'https://web.telegram.org/35e66cb7-de49-4dd8-b9ca-2d7982650aef'
-    await message.answer_photo(photo=photo_url)
-    await message.answer('В этом разделе вы можете найти важные обучающме статьи по фин-гармотности', reply_markup=kb.learning_materials)
-
+    try:
+        photo = FSInputFile("app/images/tree.jpg")
+        await message.answer_photo(
+            photo=photo,
+        )
+        await message.answer('В этом разделе вы можете найти важные обучающме статьи по фин-гармотности', reply_markup=kb.learning_materials)
+    except Exception as e:
+        print(f"❌ Ошибка отправки фото: {e}")
+        await message.answer('В этом разделе вы можете найти важные обучающме статьи по фин-гармотности', 
+            reply_markup=kb.learning_materials)
+        
 @router.callback_query(F.data == 'credits')
 async def credits(callback: CallbackQuery):
     await callback.answer('Вы открыли раздел "Кредиты"')

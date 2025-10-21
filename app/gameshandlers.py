@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
+from aiogram.types import FSInputFile
 
 import app.gameskeyboard as gamekb
 
@@ -8,9 +9,16 @@ games_router = Router()
 
 @games_router.message(Command('games'))
 async def games(message: Message):
-    photo_url = 'https://web.telegram.org/eede7508-f185-4c1a-be00-087bc5558c05'
-    await message.answer_photo(photo=photo_url)
-    await message.answer('Выберите игру', reply_markup=gamekb.games)
+    try:
+        photo = FSInputFile("app/images/games.jpg")
+        await message.answer_photo(
+            photo=photo,
+        )
+        await message.answer('Выберите игру', reply_markup=gamekb.games)
+    except Exception as e:
+        print(f"❌ Ошибка отправки фото: {e}")
+        await message.answer('Выберите игру', 
+            reply_markup=gamekb.games)
 
 @games_router.callback_query(F.data == 'finans_fight')
 async def fight(callback: CallbackQuery):
