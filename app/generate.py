@@ -7,7 +7,12 @@ client = AsyncOpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=AI_TOKEN,
 )
-
+FINANCE_MODELS = [
+    "google/gemini-2.0-flash-exp:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "google/gemini-2.0-flash-thinking-exp:free",
+    "qwen/qwen-2.5-72b-instruct:free",
+]
 # Список моделей для ротации
 FINANCE_MODELS = [
     # Google модели
@@ -21,28 +26,10 @@ FINANCE_MODELS = [
     "meta-llama/llama-3.2-3b-instruct:free",
     "meta-llama/llama-3-70b-instruct:free",
     
-    # Microsoft модели
-    "microsoft/wizardlm-2-8x22b:free",
-    "microsoft/wizardlm-2-7b:free",
-    
     # Qwen модели
     "qwen/qwen-2.5-72b-instruct:free",
     "qwen/qwen-2.5-7b-instruct:free",
     "qwen/qwen-2-72b-instruct:free",
-    
-    # DeepSeek модели
-    "deepseek/deepseek-chat-v3.1:free",
-    "deepseek/deepseek-llm-67b-chat:free",
-    
-    # Mistral модели
-    "mistralai/mistral-7b-instruct:free",
-    "mistralai/mistral-nemo:free",
-    
-    # Другие провайдеры
-    "anthropic/claude-3.5-sonnet:free",
-    "cohere/command-r-plus:free",
-    "huggingfaceh4/zephyr-7b-beta:free",
-    "databricks/dbrx-instruct:free",
 ]
 
 async def ai_generate(text: str):
