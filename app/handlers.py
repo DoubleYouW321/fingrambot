@@ -18,7 +18,7 @@ async def cmd_start(message: Message):
         print(f"❌ Ошибка сохранения пользователя: {e}")
     
     try:
-        with open(r'images\start_bot_picture.jpg', 'rb') as photo:
+        with open(r'app/images/start_bot_picture.jpg', 'rb') as photo:
             await message.answer_photo(photo, caption='Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню')
     except FileNotFoundError:
         await message.answer('Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню')

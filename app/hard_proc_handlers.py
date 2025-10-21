@@ -35,7 +35,7 @@ class SimpleCompoundCalculator:
 @calculator_router.message(Command('calculator'))
 async def calculator(message: Message):
     try:
-        with open(r'images\start_calculator.jpg', 'rb') as photo:
+        with open(r'app/images/start_calculator.jpg', 'rb') as photo:
             await message.answer_photo(photo, caption='Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню', reply_markup=calc_kb.calculators_keyboard)
     except FileNotFoundError:
         await message.answer('Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню', reply_markup=calc_kb.calculators_keyboard)

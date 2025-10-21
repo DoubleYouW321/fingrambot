@@ -35,7 +35,7 @@ async def cmd_start_consultation(message: Message):
 async def cmd_start_consult(callback: CallbackQuery):
     await callback.answer('')
     try:
-        with open(r'images\start_ai.jpg', 'rb') as photo:
+        with open(r'app/images/start_ai.jpg', 'rb') as photo:
             await callback.message.answer_photo(photo, caption='Задавайте вопросы по темам:\n'
         '• Инвестиции и сбережения\n'
         '• Кредиты и ипотека\n' 

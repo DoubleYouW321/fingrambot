@@ -68,7 +68,7 @@ async def start_test(message: Message):
     user_scores[chat_id] = 0
     user_questions_index[chat_id] = 0
     try:
-        with open(r'images\start_quiz.jpg', 'rb') as photo:
+        with open(r'app/images/start_quiz.jpg', 'rb') as photo:
             await message.answer_photo(photo, caption='Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
     except FileNotFoundError:
         await message.answer('Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
