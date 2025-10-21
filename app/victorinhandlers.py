@@ -67,9 +67,13 @@ async def start_test(message: Message):
     chat_id = message.from_user.id
     user_scores[chat_id] = 0
     user_questions_index[chat_id] = 0
-    with open('images\quiz_start.jpg', 'rb') as photo:
-        await message.answer(photo, caption='Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
+    try:
+        with open(r'images\start_quiz.jpg', 'rb') as photo:
+            await message.answer_photo(photo, caption='Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
+    except FileNotFoundError:
+        await message.answer('Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
     await send_question(message, chat_id)
+    
 
 async def send_question(message: Message, chat_id):
     current_index = user_questions_index[chat_id]

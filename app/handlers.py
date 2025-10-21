@@ -17,8 +17,11 @@ async def cmd_start(message: Message):
     except Exception as e:
         print(f"❌ Ошибка сохранения пользователя: {e}")
     
-    with open('images\start_bot_picture.jpg', 'rb') as photo:
-        await message.answer(photo, caption="Приветствуем вас в чат боте по финансовой грамоте. Для того чтобы продолжить зайдите в меню")
+    try:
+        with open(r'images\start_bot_picture.jpg', 'rb') as photo:
+            await message.answer_photo(photo, caption='Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню')
+    except FileNotFoundError:
+        await message.answer('Приветствуем вас в чат боте по финансовой грамотности. Для того чтобы продолжить зайдите в меню')
 
 @router.message(Command("users"))
 async def cmd_users(message: Message):

@@ -34,9 +34,9 @@ async def cmd_start_consultation(message: Message):
 @ai_router.callback_query(F.data == 'start_consult')
 async def cmd_start_consult(callback: CallbackQuery):
     await callback.answer('')
-    with open('images\hello_ai.jpg', 'rb') as photo:
-        await callback.message.answer(photo, caption='💰 Финансовый AI-консультант\n\n'
-        'Задавайте вопросы по темам:\n'
+    try:
+        with open(r'images\start_ai.jpg', 'rb') as photo:
+            await callback.message.answer_photo(photo, caption='Задавайте вопросы по темам:\n'
         '• Инвестиции и сбережения\n'
         '• Кредиты и ипотека\n' 
         '• Бюджет и учет финансов\n'
@@ -44,7 +44,15 @@ async def cmd_start_consult(callback: CallbackQuery):
         '• Страхование\n'
         '• Криптовалюты и акции\n\n'
         'Отвечаю только на финансовые вопросы')
-
+    except FileNotFoundError:
+        await callback.message.answer('Задавайте вопросы по темам:\n'
+        '• Инвестиции и сбережения\n'
+        '• Кредиты и ипотека\n' 
+        '• Бюджет и учет финансов\n'
+        '• Налоги и отчетность\n'
+        '• Страхование\n'
+        '• Криптовалюты и акции\n\n'
+        'Отвечаю только на финансовые вопросы')
 
 @ai_router.message(Gen.wait)
 async def stop_flood(message: Message):
