@@ -34,7 +34,8 @@ class SimpleCompoundCalculator:
 
 @calculator_router.message(Command('calculator'))
 async def calculator(message: Message):
-    await message.answer('Выбирите калькулятор', reply_markup=calc_kb.calculators_keyboard)
+    with open('images\calculator.jpg', 'rb') as photo:
+        await message.answer(photo, caption="Выбирите нужный калькулятор", reply_markup=calc_kb.calculators_keyboard)
 
 @calculator_router.callback_query(F.data == 'hard_procents_calc')
 async def hard_proc(callback: CallbackQuery):

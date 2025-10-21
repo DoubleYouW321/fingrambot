@@ -17,7 +17,8 @@ async def cmd_start(message: Message):
     except Exception as e:
         print(f"❌ Ошибка сохранения пользователя: {e}")
     
-    await message.answer('Приветствуем вас в чат боте по фин грамотности')
+    with open('images\start_bot_picture.jpg', 'rb') as photo:
+        await message.answer(photo, caption="Приветствуем вас в чат боте по финансовой грамоте. Для того чтобы продолжить зайдите в меню")
 
 @router.message(Command("users"))
 async def cmd_users(message: Message):
