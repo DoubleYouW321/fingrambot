@@ -14,7 +14,6 @@ ai_router = Router()
 class Gen(StatesGroup):
     wait = State()
 
-
 FINANCE_KEYWORDS = [
     'финанс', 'деньг', 'бюджет', 'инвест', 'кредит', 'вклад', 'сбережени', 
     'налог', 'ипотек', 'страхован', 'акци', 'облигац', 'фонд', 'крипто',
@@ -24,7 +23,6 @@ FINANCE_KEYWORDS = [
 ]
 
 def is_finance_related(text: str) -> bool:
-    """Проверяет, относится ли вопрос к финансам"""
     text_lower = text.lower()
     return any(keyword in text_lower for keyword in FINANCE_KEYWORDS)
 
@@ -33,7 +31,8 @@ async def cmd_start_consultation(message: Message):
     await message.answer('🤖 Финансовый AI-консультант', reply_markup=ai_kb.consult_choose)
 
 @ai_router.callback_query(F.data == 'start_consult')
-async def cmd_start_consult(callback: CallbackQuery):
+async def cmd_start_consult(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(Gen.wait)
     await callback.answer('')
     text = '''Задавайте вопросы по темам:\n
         • Инвестиции и сбережения\n
@@ -55,8 +54,75 @@ async def cmd_start_consult(callback: CallbackQuery):
         await callback.message.answer(text)
 
 @ai_router.message(Gen.wait)
-async def stop_flood(message: Message):
-    await message.answer('⏳ Анализирую ваш финансовый вопрос...')
+async def generating(message: Message, state: FSMContext):
+    if len(message.text) > 4000:
+        await message.answer("❌ Запрос слишком длинный. Сократите до 4000 символов.")
+        await state.clear()
+        return
+    
+    if not is_finance_related(message.text):
+        await message.answer(
+            "❌ Я отвечаю только на финансовые вопросы.\n\n"
+            "Задайте вопрос по темам:\n"
+            "• Инвестиции и сбережения\n"
+            "• Кредиты и бюджет\n" 
+            "• Налоги и финансовое планирование"
+        )
+        await state.clear()
+        return
+    
+    processing_msg = await message.answer("💼 Анализирую финансовый вопрос...")
+    
+    try:
+        response = await asyncio.wait_for(
+            ai_generate(message.text), 
+            timeout=60
+        )
+        
+        await processing_msg.delete()
+        
+        if not response or response.strip() == "":
+            await message.answer("❌ Не удалось сгенерировать ответ. Попробуйте переформулировать вопрос.")
+            return
+        
+        await send_long_message(message, response)
+            
+    except asyncio.TimeoutError:
+        await processing_msg.delete()
+        await message.answer("⏰ Превышено время ожидания. Попробуйте позже.")
+    
+    except Exception as e:
+        await processing_msg.delete()
+        error_message = str(e)
+        
+        if "rate limit" in error_message.lower() or "429" in error_message:
+            await message.answer("🚫 Слишком много запросов. Подождите немного.")
+        elif "timeout" in error_message.lower():
+            await message.answer("⏰ Сервис временно недоступен. Попробуйте позже.")
+        else:
+            await message.answer("❌ Произошла ошибка. Попробуйте еще раз.")
+    
+    finally:
+        await state.clear()
+
+@ai_router.callback_query(F.data == 'consult_info')
+async def cmd_help_ai(callback: CallbackQuery):
+    help_text = (
+        "💰 Финансовый AI-консультант\n\n"
+        "Я помогу с:\n"
+        "• Инвестициями и сбережениями\n"
+        "• Кредитами и ипотекой\n"
+        "• Составлением бюджета\n"
+        "• Налоговыми вопросами\n"
+        "• Финансовым планированием\n\n"
+        "Как пользоваться:\n"
+        "1. Задайте вопрос по финансам\n"
+        "2. Получите лаконичный ответ\n"
+        "3. Используйте практические советы\n\n"
+        "Отвечаю только на финансовые темы"
+    )
+    await callback.answer('')
+    await callback.message.answer(help_text, reply_markup=ai_kb.back_to_consult)
 
 def split_message(text: str, max_length: int = 4096) -> list:
     if len(text) <= max_length:
@@ -114,74 +180,3 @@ async def send_long_message(message: Message, text: str, delay: float = 0.5):
         chunk_with_counter = f"📄 Продолжение {i}/{len(chunks)}:\n\n{chunk}"
         await asyncio.sleep(delay)
         await message.answer(chunk_with_counter)
-
-@ai_router.message()
-async def generating(message: Message, state: FSMContext):
-    if len(message.text) > 4000:
-        await message.answer("❌ Запрос слишком длинный. Сократите до 4000 символов.")
-        return
-    
-    if not is_finance_related(message.text):
-        await message.answer(
-            "❌ Я отвечаю только на финансовые вопросы.\n\n"
-            "Задайте вопрос по темам:\n"
-            "• Инвестиции и сбережения\n"
-            "• Кредиты и бюджет\n" 
-            "• Налоги и финансовое планирование"
-        )
-        return
-    
-    await state.set_state(Gen.wait)
-    
-    processing_msg = await message.answer("💼 Анализирую финансовый вопрос...")
-    
-    try:
-        response = await asyncio.wait_for(
-            ai_generate(message.text), 
-            timeout=60
-        )
-        
-        await processing_msg.delete()
-        
-        if not response or response.strip() == "":
-            await message.answer("❌ Не удалось сгенерировать ответ. Попробуйте переформулировать вопрос.")
-            return
-        
-        await send_long_message(message, response)
-            
-    except asyncio.TimeoutError:
-        await processing_msg.delete()
-        await message.answer("⏰ Превышено время ожидания. Попробуйте позже.")
-    
-    except Exception as e:
-        await processing_msg.delete()
-        error_message = str(e)
-        
-        if "rate limit" in error_message.lower() or "429" in error_message:
-            await message.answer("🚫 Слишком много запросов. Подождите немного.")
-        elif "timeout" in error_message.lower():
-            await message.answer("⏰ Сервис временно недоступен. Попробуйте позже.")
-        else:
-            await message.answer("❌ Произошла ошибка. Попробуйте еще раз.")
-    
-    finally:
-        await state.clear()
-
-@ai_router.callback_query(F.data == 'consult_info')
-async def cmd_help_ai(callback: CallbackQuery):
-    help_text = (
-        "💰 Финансовый AI-консультант\n\n"
-        "Я помогу с:\n"
-        "• Инвестициями и сбережениями\n"
-        "• Кредитами и ипотекой\n"
-        "• Составлением бюджета\n"
-        "• Налоговыми вопросами\n"
-        "• Финансовым планированием\n\n"
-        "Как пользоваться:\n"
-        "1. Задайте вопрос по финансам\n"
-        "2. Получите лаконичный ответ\n"
-        "3. Используйте практические советы\n\n"
-        "Отвечаю только на финансовые темы"
-    )
-    await callback.answer('')
-    await callback.message.answer(help_text, reply_markup=ai_kb.back_to_consult)
