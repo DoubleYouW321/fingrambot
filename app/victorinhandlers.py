@@ -68,7 +68,6 @@ async def start_test(message: Message):
     chat_id = message.from_user.id
     user_scores[chat_id] = 0
     user_questions_index[chat_id] = 0
-
     try:
         photo = FSInputFile("app/images/start_quiz.jpg")
         await message.answer_photo(
@@ -78,8 +77,7 @@ async def start_test(message: Message):
     except Exception as e:
         print(f"❌ Ошибка отправки фото: {e}")
         await message.answer('Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
-
-    send_question(chat_id)
+    await send_question(message, chat_id)
     
 
 async def send_question(message: Message, chat_id):
