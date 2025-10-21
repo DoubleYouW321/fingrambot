@@ -78,6 +78,8 @@ async def start_test(message: Message):
     except Exception as e:
         print(f"❌ Ошибка отправки фото: {e}")
         await message.answer('Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
+
+    send_question(chat_id)
     
 
 async def send_question(message: Message, chat_id):

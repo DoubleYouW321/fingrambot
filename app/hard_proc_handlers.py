@@ -39,11 +39,13 @@ async def calculator(message: Message):
         photo = FSInputFile("app/images/start_calculator.jpg")
         await message.answer_photo(
             photo=photo,
-            caption='Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.'
+            caption='Выбирите калькулятор', 
+            reply_markup=calc_kb.calculators_keyboard
         )
     except Exception as e:
         print(f"❌ Ошибка отправки фото: {e}")
-        await message.answer('Приветствуем вас в викторине! 🧠\nОтвечайте на вопросы, выбирая один из вариантов ответа.')
+        await message.answer('Выбирите калькулятор', 
+            reply_markup=calc_kb.calculators_keyboard)
 
 
 @calculator_router.callback_query(F.data == 'hard_procents_calc')
