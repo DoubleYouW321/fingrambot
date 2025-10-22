@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финансовый поединок</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .players {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .player, .enemy {
+            width: 48%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .player {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+        }
+        .enemy {
+            background-color: #fff1f0;
+            border: 1px solid #ffa39e;
+        }
+        .health {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .card {
+            width: 80px;
+            height: 120px;
+            background-color: #fafafa;
+            border: 1px solid #d9d9d9;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .card-name {
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+        }
+        .card-effect {
+            font-size: 10px;
+            color: #666;
+        }
+        .log {
+            margin-top: 20px;
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #d9d9d9;
+            padding: 10px;
+            background-color: #fafafa;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .player-turn {
+            font-weight: bold;
+            color: #096dd9;
+        }
+        .enemy-turn {
+            font-weight: bold;
+            color: #cf1322;
+        }
+        .game-over {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .win {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #389e0d;
+        }
+        .lose {
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #cf1322;
+        }
+        button {
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #40a9ff;
+        }
+        .rules {
+            background-color: #f6f6f6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1890ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Финансовый поединок</h1>
+        <div class="rules">
+            <h3>Правила игры:</h3>
+            <p>Ваша цель - победить злоумышленника! Атакуйте или защищайтесь от его атак. Для этого используйте 10 "финансовых карт", каждая из которых является финансовым термином и имеет свой эффект. Не дайте злоумышленнику обмануть себя!</p>
+        </div>
+        <div class="players">
+            <div class="player">
+                <h2>Игрок</h2>
+                <div class="health">Жизни: <span id="player-health">10</span></div>
+                <h3>Ваши карты:</h3>
+                <div class="cards" id="player-cards"></div>
+            </div>
+            <div class="enemy">
+                <h2>Злоумышленник</h2>
+                <div class="health">Жизни: <span id="enemy-health">10</span></div>
+                <h3>Карты злоумышленника:</h3>
+                <div class="cards" id="enemy-cards"></div>
+            </div>
+        </div>
+        <div class="log" id="game-log"></div>
+        <button id="restart-btn" style="display: none;">Играть снова</button>
+    </div>
+
+    <script>
+        // Определение карт с финансовыми терминами
+        const cards = [
+            {
+                name: "Акция",
+                effect: "Увеличивает урон следующей карты игрока на 2",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        game.playerBuff = 2;
+                        game.logAction(`Игрок получает +2 к урону от следующей карты!`);
+                    } else {
+                        game.enemyBuff = 2;
+                        game.logAction(`Злоумышленник получает +2 к урону от следующей карты!`);
+                    }
+                }
+            },
+            {
+                name: "Облигация",
+                effect: "Наносит 1 урон и восстанавливает 1 жизнь",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        game.enemyHealth -= 1;
+                        game.playerHealth = Math.min(game.playerHealth + 1, 10);
+                        game.logAction(`Игрок использует Облигацию: наносит 1 урон и восстанавливает 1 жизнь!`);
+                    } else {
+                        game.playerHealth -= 1;
+                        game.enemyHealth = Math.min(game.enemyHealth + 1, 10);
+                        game.logAction(`Злоумышленник использует Облигацию: наносит 1 урон и восстанавливает 1 жизнь!`);
+                    }
+                    updateHealth();
+                }
+            },
+            {
+                name: "Кредит",
+                effect: "Наносит 3 урона, но следующий ход вы пропускаете",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        game.enemyHealth -= 3;
+                        game.playerSkipTurn = true;
+                        game.logAction(`Игрок берет Кредит: наносит 3 урона, но пропускает следующий ход!`);
+                    } else {
+                        game.playerHealth -= 3;
+                        game.enemySkipTurn = true;
+                        game.logAction(`Злоумышленник берет Кредит: наносит 3 урона, но пропускает следующий ход!`);
+                    }
+                    updateHealth();
+                }
+            },
+            {
+                name: "Депозит",
+                effect: "Восстанавливает 2 жизни",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        game.playerHealth = Math.min(game.playerHealth + 2, 10);
+                        game.logAction(`Игрок открывает Депозит: восстанавливает 2 жизни!`);
+                    } else {
+                        game.enemyHealth = Math.min(game.enemyHealth + 2, 10);
+                        game.logAction(`Злоумышленник открывает Депозит: восстанавливает 2 жизни!`);
+                    }
+                    updateHealth();
+                }
+            },
+            {
+                name: "Инфляция",
+                effect: "Уменьшает здоровье противника на 10% (минимум 1)",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        const damage = Math.max(1, Math.floor(game.enemyHealth * 0.1));
+                        game.enemyHealth -= damage;
+                        game.logAction(`Игрок вызывает Инфляцию: уменьшает здоровье злоумышленника на ${damage}!`);
+                    } else {
+                        const damage = Math.max(1, Math.floor(game.playerHealth * 0.1));
+                        game.playerHealth -= damage;
+                        game.logAction(`Злоумышленник вызывает Инфляцию: уменьшает здоровье игрока на ${damage}!`);
+                    }
+                    updateHealth();
+                }
+            },
+            {
+                name: "Диверсификация",
+                effect: "Наносит 1 урон за каждую карту в руке",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        const damage = game.playerHand.length;
+                        game.enemyHealth -= damage;
+                        game.logAction(`Игрок применяет Диверсификацию: наносит ${damage} урона (по 1 за каждую карту в руке)!`);
+                    } else {
+                        const damage = game.enemyHand.length;
+                        game.playerHealth -= damage;
+                        game.logAction(`Злоумышленник применяет Диверсификацию: наносит ${damage} урона (по 1 за каждую карту в руке)!`);
+                    }
+                    updateHealth();
+                }
+            },
+            {
+                name: "Налог",
+                effect: "Отнимает у противника 2 жизни и 1 случайную карту",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        game.enemyHealth -= 2;
+                        if (game.enemyHand.length > 0) {
+                            const randomIndex = Math.floor(Math.random() * game.enemyHand.length);
+                            game.enemyHand.splice(randomIndex, 1);
+                            game.logAction(`Игрок взимает Налог: наносит 2 урона и уничтожает 1 случайную карту злоумышленника!`);
+                        } else {
+                            game.logAction(`Игрок взимает Налог: наносит 2 урона (у злоумышленника нет карт для удаления)!`);
+                        }
+                    } else {
+                        game.playerHealth -= 2;
+                        if (game.playerHand.length > 0) {
+                            const randomIndex = Math.floor(Math.random() * game.playerHand.length);
+                            game.playerHand.splice(randomIndex, 1);
+                            game.logAction(`Злоумышленник взимает Налог: наносит 2 урона и уничтожает 1 случайную карту игрока!`);
+                        } else {
+                            game.logAction(`Злоумышленник взимает Налог: наносит 2 урона (у игрока нет карт для удаления)!`);
+                        }
+                    }
+                    updateHealth();
+                    renderHands();
+                }
+            },
+            {
+                name: "Страховка",
+                effect: "Блокирует весь урон в этом ходу и возвращает 1 урон",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        game.playerShield = true;
+                        game.logAction(`Игрок активирует Страховку: блокирует весь урон в этом ходу и возвращает 1 урон!`);
+                    } else {
+                        game.enemyShield = true;
+                        game.logAction(`Злоумышленник активирует Страховку: блокирует весь урон в этом ходу и возвращает 1 урон!`);
+                    }
+                }
+            },
+            {
+                name: "Банкротство",
+                effect: "Наносит 5 урона, но вы теряете все карты",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        game.enemyHealth -= 5;
+                        game.playerHand = [];
+                        game.logAction(`Игрок объявляет Банкротство: наносит 5 урона, но теряет все карты!`);
+                    } else {
+                        game.playerHealth -= 5;
+                        game.enemyHand = [];
+                        game.logAction(`Злоумышленник объявляет Банкротство: наносит 5 урона, но теряет все карты!`);
+                    }
+                    updateHealth();
+                    renderHands();
+                }
+            },
+            {
+                name: "Инвестиция",
+                effect: "Наносит урон, равный количеству оставшихся жизней игрока, деленному на 2 (минимум 1)",
+                apply: (game, isPlayer) => {
+                    if (isPlayer) {
+                        const damage = Math.max(1, Math.floor(game.playerHealth / 2));
+                        game.enemyHealth -= damage;
+                        game.logAction(`Игрок делает Инвестицию: наносит ${damage} урона!`);
+                    } else {
+                        const damage = Math.max(1, Math.floor(game.enemyHealth / 2));
+                        game.playerHealth -= damage;
+                        game.logAction(`Злоумышленник делает Инвестицию: наносит ${damage} урона!`);
+                    }
+                    updateHealth();
+                }
+            }
+        ];
+
+        // Игровой объект
+        const game = {
+            playerHealth: 10,
+            enemyHealth: 10,
+            playerHand: [],
+            enemyHand: [],
+            playerBuff: 0,
+            enemyBuff: 0,
+            playerShield: false,
+            enemyShield: false,
+            playerSkipTurn: false,
+            enemySkipTurn: false,
+            isPlayerTurn: true,
+            gameOver: false,
+            
+            // Инициализация игры
+            init: function() {
+                this.playerHealth = 10;
+                this.enemyHealth = 10;
+                this.playerHand = this.drawCards(3);
+                this.enemyHand = this.drawCards(3);
+                this.playerBuff = 0;
+                this.enemyBuff = 0;
+                this.playerShield = false;
+                this.enemyShield = false;
+                this.playerSkipTurn = false;
+                this.enemySkipTurn = false;
+                this.isPlayerTurn = true;
+                this.gameOver = false;
+                
+                document.getElementById('game-log').innerHTML = '';
+                this.logAction('Игра началась! Первый ход игрока.');
+                
+                updateHealth();
+                renderHands();
+                document.getElementById('restart-btn').style.display = 'none';
+            },
+            
+            // Розыгрыш случайных карт
+            drawCards: function(count) {
+                const drawn = [];
+                for (let i = 0; i < count; i++) {
+                    const randomIndex = Math.floor(Math.random() * cards.length);
+                    drawn.push({...cards[randomIndex]});
+                }
+                return drawn;
+            },
+            
+            // Логирование действий
+            logAction: function(message) {
+                const logElement = document.getElementById('game-log');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                
+                if (this.isPlayerTurn) {
+                    entry.classList.add('player-turn');
+                } else {
+                    entry.classList.add('enemy-turn');
+                }
+                
+                entry.textContent = message;
+                logElement.appendChild(entry);
+                logElement.scrollTop = logElement.scrollHeight;
+            },
+            
+            // Пополнение карт игрока
+            refillPlayerHand: function() {
+                while (this.playerHand.length < 3) {
+                    const newCard = this.drawCards(1)[0];
+                    this.playerHand.push(newCard);
+                    this.logAction(`Игрок получает новую карту: ${newCard.name}`);
+                }
+            },
+            
+            // Пополнение карт злоумышленника (без сообщения о конкретной карте)
+            refillEnemyHand: function() {
+                while (this.enemyHand.length < 3) {
+                    const newCard = this.drawCards(1)[0];
+                    this.enemyHand.push(newCard);
+                    this.logAction(`Злоумышленник получает новую карту`);
+                }
+            },
+            
+            // Ход игрока
+            playerPlayCard: function(cardIndex) {
+                if (!this.isPlayerTurn || this.gameOver) return;
+                
+                const card = this.playerHand[cardIndex];
+                this.playerHand.splice(cardIndex, 1);
+                
+                // Применяем эффект карты
+                card.apply(this, true);
+                
+                // Применяем бафф, если есть
+                if (this.playerBuff > 0) {
+                    this.enemyHealth -= this.playerBuff;
+                    this.logAction(`Дополнительный урон +${this.playerBuff} от эффекта Акции!`);
+                    this.playerBuff = 0;
+                    updateHealth();
+                }
+                
+                // Проверяем щит злоумышленника
+                if (this.enemyShield) {
+                    this.playerHealth -= 1;
+                    this.logAction(`Страховка злоумышленника возвращает 1 урон игроку!`);
+                    this.enemyShield = false;
+                    updateHealth();
+                }
+                
+                // Проверяем конец игры
+                this.checkGameOver();
+                if (this.gameOver) return;
+                
+                // Пополняем карты игрока
+                this.refillPlayerHand();
+                
+                // Передаем ход злоумышленнику, если не пропускаем
+                if (!this.playerSkipTurn) {
+                    this.isPlayerTurn = false;
+                    this.logAction('Ход переходит к злоумышленнику.');
+                    renderHands();
+                    
+                    // Злоумышленник ходит через 1.5 секунды
+                    setTimeout(() => this.enemyTurn(), 1500);
+                } else {
+                    this.playerSkipTurn = false;
+                    this.logAction('Игрок пропускает ход из-за эффекта Кредита!');
+                    renderHands();
+                    
+                    // Следующий ход снова игрока
+                    setTimeout(() => {
+                        this.logAction('Ход снова игрока.');
+                        this.isPlayerTurn = true;
+                        renderHands();
+                    }, 1500);
+                }
+            },
+            
+            // Ход злоумышленника
+            enemyTurn: function() {
+                if (this.isPlayerTurn || this.gameOver) return;
+                
+                // Если злоумышленник пропускает ход
+                if (this.enemySkipTurn) {
+                    this.enemySkipTurn = false;
+                    this.logAction('Злоумышленник пропускает ход из-за эффекта Кредита!');
+                    
+                    // Передаем ход игроку
+                    this.isPlayerTurn = true;
+                    this.logAction('Ход переходит к игроку.');
+                    renderHands();
+                    return;
+                }
+                
+                // Злоумышленник выбирает случайную карту
+                if (this.enemyHand.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * this.enemyHand.length);
+                    const card = this.enemyHand[randomIndex];
+                    this.enemyHand.splice(randomIndex, 1);
+                    
+                    // Применяем эффект карты
+                    card.apply(this, false);
+                    
+                    // Применяем бафф, если есть
+                    if (this.enemyBuff > 0) {
+                        this.playerHealth -= this.enemyBuff;
+                        this.logAction(`Дополнительный урон +${this.enemyBuff} от эффекта Акции!`);
+                        this.enemyBuff = 0;
+                        updateHealth();
+                    }
+                    
+                    // Проверяем щит игрока
+                    if (this.playerShield) {
+                        this.enemyHealth -= 1;
+                        this.logAction(`Страховка игрока возвращает 1 урон злоумышленнику!`);
+                        this.playerShield = false;
+                        updateHealth();
+                    }
+                    
+                    // Проверяем конец игры
+                    this.checkGameOver();
+                    if (this.gameOver) return;
+                    
+                    // Пополняем карты злоумышленника
+                    this.refillEnemyHand();
+                }
+                
+                // Передаем ход игроку
+                this.isPlayerTurn = true;
+                this.logAction('Ход переходит к игроку.');
+                renderHands();
+            },
+            
+            // Проверка окончания игры
+            checkGameOver: function() {
+                if (this.playerHealth <= 0) {
+                    this.playerHealth = 0;
+                    this.gameOver = true;
+                    updateHealth();
+                    this.logAction('Игра окончена! Злоумышленник победил.');
+                    showGameOver(false);
+                } else if (this.enemyHealth <= 0) {
+                    this.enemyHealth = 0;
+                    this.gameOver = true;
+                    updateHealth();
+                    this.logAction('Игра окончена! Игрок победил.');
+                    showGameOver(true);
+                }
+            }
+        };
+
+        // Обновление отображения здоровья
+        function updateHealth() {
+            document.getElementById('player-health').textContent = game.playerHealth;
+            document.getElementById('enemy-health').textContent = game.enemyHealth;
+        }
+
+        // Отображение карт на руках
+        function renderHands() {
+            const playerCardsElement = document.getElementById('player-cards');
+            const enemyCardsElement = document.getElementById('enemy-cards');
+            
+            playerCardsElement.innerHTML = '';
+            enemyCardsElement.innerHTML = '';
+            
+            // Карты игрока
+            game.playerHand.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-effect">${card.effect}</div>
+                `;
+                if (game.isPlayerTurn && !game.gameOver) {
+                    cardElement.addEventListener('click', () => game.playerPlayCard(index));
+                }
+                playerCardsElement.appendChild(cardElement);
+            });
+            
+            // Карты злоумышленника (скрытые)
+            game.enemyHand.forEach(() => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `
+                    <div class="card-name">?</div>
+                    <div class="card-effect">Скрытая карта</div>
+                `;
+                enemyCardsElement.appendChild(cardElement);
+            });
+        }
+
+        // Показать экран окончания игры
+        function showGameOver(playerWon) {
+            const logElement = document.getElementById('game-log');
+            const gameOverElement = document.createElement('div');
+            gameOverElement.className = playerWon ? 'game-over win' : 'game-over lose';
+            gameOverElement.textContent = playerWon ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ!';
+            logElement.appendChild(gameOverElement);
+            
+            document.getElementById('restart-btn').style.display = 'block';
+        }
+
+        // Инициализация игры при загрузке
+        window.onload = function() {
+            game.init();
+            
+            // Кнопка рестарта
+            document.getElementById('restart-btn').addEventListener('click', () => {
+                game.init();
+            });
+        };
+    </script>
+</body>
+</html>
