@@ -7,13 +7,7 @@ client = AsyncOpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=AI_TOKEN,
 )
-FINANCE_MODELS = [
-    "google/gemini-2.0-flash-exp:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "google/gemini-2.0-flash-thinking-exp:free",
-    "qwen/qwen-2.5-72b-instruct:free",
-]
-# Список моделей для ротации
+
 FINANCE_MODELS = [
     "google/gemini-2.0-flash-exp:free",
     "google/gemini-2.0-flash-thinking-exp:free",
