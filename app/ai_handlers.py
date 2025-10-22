@@ -54,6 +54,22 @@ def is_finance_related(text: str) -> bool:
     text_lower = text.lower()
     return any(keyword in text_lower for keyword in FINANCE_KEYWORDS)
 
+def is_russian_text(text: str) -> bool:
+    if not text:
+        return False
+    
+    # Считаем русские буквы
+    russian_chars = sum(1 for char in text if 'а' <= char.lower() <= 'я' or char in 'ёЁ')
+    # Считаем английские буквы
+    english_chars = sum(1 for char in text if 'a' <= char.lower() <= 'z')
+    
+    total_letters = russian_chars + english_chars
+    if total_letters == 0:
+        return True  
+    
+    russian_ratio = russian_chars / total_letters
+    return russian_ratio >= 0.7  
+
 @ai_router.message(Command('ai_consultation'))
 async def cmd_start_consultation(message: Message):
     await message.answer('🤖 Финансовый AI-консультант', reply_markup=ai_kb.consult_choose)
@@ -111,6 +127,11 @@ async def generating(message: Message, state: FSMContext):
         
         if not response or response.strip() == "":
             await message.answer("❌ Не удалось сгенерировать ответ. Попробуйте переформулировать вопрос.")
+            return
+        
+        # Проверяем язык ответа
+        if not is_russian_text(response):
+            await message.answer("❌ Получен ответ не на русском языке. Попробуйте переформулировать вопрос.")
             return
         
         await send_long_message(message, response)
