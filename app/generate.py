@@ -15,18 +15,15 @@ FINANCE_MODELS = [
 ]
 # Список моделей для ротации
 FINANCE_MODELS = [
-    # Google модели
     "google/gemini-2.0-flash-exp:free",
     "google/gemini-2.0-flash-thinking-exp:free",
     "google/gemini-flash-1.5-8b:free",
     
-    # Meta (Llama) модели
     "meta-llama/llama-3.3-70b-instruct:free",
     "meta-llama/llama-3.1-8b-instruct:free", 
     "meta-llama/llama-3.2-3b-instruct:free",
     "meta-llama/llama-3-70b-instruct:free",
     
-    # Qwen модели
     "qwen/qwen-2.5-72b-instruct:free",
     "qwen/qwen-2.5-7b-instruct:free",
     "qwen/qwen-2-72b-instruct:free",
