@@ -84,7 +84,7 @@ def is_response_russian(text: str) -> bool:
     
     total_letters = russian_chars + english_chars
     if total_letters == 0:
-        return True  # Если нет букв, считаем допустимым
+        return True  
     
     russian_ratio = russian_chars / total_letters
-    return russian_ratio >= 0.8  # 80% текста должно быть на русском
+    return russian_ratio >= 0.8  

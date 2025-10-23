@@ -58,9 +58,7 @@ def is_russian_text(text: str) -> bool:
     if not text:
         return False
     
-    # Считаем русские буквы
     russian_chars = sum(1 for char in text if 'а' <= char.lower() <= 'я' or char in 'ёЁ')
-    # Считаем английские буквы
     english_chars = sum(1 for char in text if 'a' <= char.lower() <= 'z')
     
     total_letters = russian_chars + english_chars
@@ -97,7 +95,7 @@ async def cmd_start_consult(callback: CallbackQuery, state: FSMContext):
         print(f"❌ Ошибка отправки фото: {e}")
         await callback.message.answer(text)
 
-@ai_router.message(Gen.wait)
+@ai_router.message()
 async def generating(message: Message, state: FSMContext):
     if len(message.text) > 4000:
         await message.answer("❌ Запрос слишком длинный. Сократите до 4000 символов.")
